@@ -1,46 +1,59 @@
-
-
-import Navbar from './components/Navbar/Navbar'
-import Hero from './components/Hero/Hero'
-import Services from './components/Services/Services'
-import Banner from './components/Bannner/Banner'
-import BannerText from './components/Bannner/BannerText'
-import Blog from './components/Blog/Blog'
-import Footer from './components/Navbar/Footer'
-import { UpdateFollower } from 'react-mouse-follower'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar/Navbar";
+import Hero from "./components/Hero/Hero";
+import Services from "./components/Services/Services";
+import Banner from "./components/Bannner/Banner";
+import BannerText from "./components/Bannner/BannerText";
+import Blog from "./components/Blog/Blog";
+import Footer from "./components/Navbar/Footer";
+import { UpdateFollower } from "react-mouse-follower";
+import Register from "./Login_Register/Register";
+import Login from "./Login_Register/Login";
 
 export default function App() {
-  
-
   return (
-   
-      <main className='overflow-x-hidden'>
-        <UpdateFollower 
-          mouseOptions={{
-            backgroundColor:"white",
-            zIndex:999,
-            followSpeed:1.5
-          }}>
-          <Navbar/>
-          <Hero/>
-        </UpdateFollower>
+    <Router>
+      <main className="overflow-x-hidden">
+        <Navbar /> {/* Navbar remains common across all pages */}
 
-        <UpdateFollower
-         mouseOptions={{
-          backgroundColor:"black",
-          zIndex:999,
-          followSpeed:1.5
-        }}>
-           <Services/>
-           <Banner/>
-           <BannerText/>
-           <Blog/>
-           <Footer/>
-        </UpdateFollower>
-       
-       
+        <Routes>
+          {/* Home Page (/) */}
+          <Route
+            path="/"
+            element={
+              <>
+                <UpdateFollower
+                  mouseOptions={{
+                    backgroundColor: "white",
+                    zIndex: 999,
+                    followSpeed: 1.5,
+                  }}
+                >
+                  <Hero />
+                </UpdateFollower>
+
+                <UpdateFollower
+                  mouseOptions={{
+                    backgroundColor: "black",
+                    zIndex: 999,
+                    followSpeed: 1.5,
+                  }}
+                >
+                  <Services />
+                  <Banner />
+                  <BannerText />
+                  <Blog />
+                  <Footer />
+                </UpdateFollower>
+              </>
+            }
+          />
+
+          {/* Register Page (/register) */}
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+        </Routes>
       </main>
-   
-  )
+    </Router>
+  );
 }
-
