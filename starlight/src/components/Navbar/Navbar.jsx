@@ -7,7 +7,7 @@ const NavbarMenu = [
   {
     id:1,
     title:"Home",
-    link:"#"
+    link:"/"
   },
   {
     id:2,
@@ -21,13 +21,13 @@ const NavbarMenu = [
   },
   {
     id:4,
-    title:"About",
-    link:"#"
+    title:"Register",
+    link:"/register"
   },
   {
     id:5,
-    title:"Contact",
-    link:"#"
+    title:"Login",
+    link:"/login"
   },
 ]
 const Navbar = () => {
