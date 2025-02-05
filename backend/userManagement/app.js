@@ -27,17 +27,28 @@ app.post('/signupUser',(req,res)=>{
     .catch(err => res.json(err))
 });
 
-app.post('/updateUser',(req,res) =>{
+app.post('/updateUser/:id',(req,res) =>{
     controller.updateUser(req.body,(callback) =>{
         res.send(callback)
     });
 });
 
-app.post('/deleteUser',(req,res) =>{
+app.post('/deleteUser/:id',(req,res) =>{
     controller.deleteUser(req.body,(callback =>{
         res.send(callback)
     }));
 })
 
+app.post('/login',(req,res) =>{
+    controller.loginUser(req.body)
+    .then(users =>res.json(users))
+    .catch(err => res.json(err));
+})
+
+app.get("/",(req,res) =>{
+    controller.verifyUser(req.body,(callback) =>{
+        res.send(callback);
+    })
+})
 module.exports = app;
 
