@@ -62,12 +62,14 @@ const Login = () => {
             type="email"
             name="email"
             onChange={(e) =>setEmail(e.target.value)}
+            required
             placeholder="Enter your email"
             className="w-full p-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
           <input
             type="password"
             name="password"
+            required
             onChange={(e) =>setPassword(e.target.value)}
             placeholder="Enter password"
             className="w-full p-2 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
