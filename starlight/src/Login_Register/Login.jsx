@@ -1,21 +1,48 @@
 import React, { useState } from "react";
 import Logo from "../assets/logo.png";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 const Login = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    role: "",
-    age: "",
-    password: ""
-  });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const navigate = useNavigate();
+  const [email,setEmail] = useState('');
+  const [password,setPassword] = useState('');
+
+  axios.defaults.withCredentials = true;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Form submitted", formData);
+   
+    axios.post('http://localhost:3001/api/login',{email,password})
+    .then(result =>{
+      console.log(result);
+
+      if(result.data.message === "Success"){
+        localStorage.setItem('userName',result.data.name);
+        localStorage.setItem('userEmail',result.data.email);
+        localStorage.setItem('userAge',result.data.age);
+        localStorage.setItem('userRole',result.data.role);
+        localStorage.setItem('userPassword',result.data.password);
+
+        const role = result.data.role;
+
+        switch(role){
+          case 'ADMIN':
+            navigate('/admin')
+            break;
+
+            default:
+              navigate('/')
+        }
+      }else{
+        alert(result.data.message);
+      }
+    })
+
+    .catch(error =>{
+      console.log(error);
+      alert('Incorrect password or email')
+    })
   };
 
   return (
@@ -34,16 +61,14 @@ const Login = () => {
           <input
             type="email"
             name="email"
-            value={formData.email}
-            onChange={handleChange}
+            onChange={(e) =>setEmail(e.target.value)}
             placeholder="Enter your email"
             className="w-full p-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
           <input
             type="password"
             name="password"
-            value={formData.password}
-            onChange={handleChange}
+            onChange={(e) =>setPassword(e.target.value)}
             placeholder="Enter password"
             className="w-full p-2 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />

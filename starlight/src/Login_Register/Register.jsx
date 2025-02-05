@@ -1,21 +1,25 @@
 import React, { useState } from "react";
 import Logo from "../assets/logo.png";
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 const Register = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    role: "",
-    age: "",
-    password: ""
-  });
+ 
+  const [name,setName]=useState();
+  const [email,setEmail]=useState();
+  const [age,setAge]=useState();
+  const [role,setRole]=useState();
+  const [password,setPassowrd]=useState();
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
+ const navigate = useNavigate();
+  
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Form submitted", formData);
+    axios.post('http://localhost:3001/api/signupUser',{name,email,age,role,password})
+    .then((result) =>{
+      console.log(result);
+      navigate("/login")
+    })
+    .catch((error) =>console.log(error));
   };
 
   return (
@@ -32,28 +36,26 @@ const Register = () => {
         <form onSubmit={handleSubmit}>
             <select
                 name="role"
-                value={formData.role}
-                onChange={handleChange}
+                
+                onChange={(e) =>setRole(e.target.value)}
                 className="w-full p-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
                 <option value="">Select your Role</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
+                <option value="ADMIN">ADMIN</option>
+                <option value="USER">USER</option>
                 <option value="Other">Other</option>
             </select>
             <input
                 type="text"
                 name="name"
-                value={formData.name}
-                onChange={handleChange}
+                onChange={(e) =>setName(e.target.value)}
                 placeholder="Enter your name"
                 className="w-full p-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           <input
             type="email"
             name="email"
-            value={formData.email}
-            onChange={handleChange}
+            onChange={(e) =>setEmail(e.target.value)}
             placeholder="Enter your email"
             className="w-full p-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
@@ -61,16 +63,14 @@ const Register = () => {
           <input
             type="number"
             name="age"
-            value={formData.age}
-            onChange={handleChange}
+            onChange={(e) =>setAge(e.target.value)}
             placeholder="Enter your age"
             className="w-full p-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
           <input
             type="password"
             name="password"
-            value={formData.password}
-            onChange={handleChange}
+            onChange={(e) =>setPassowrd(e.target.value)}
             placeholder="Enter password"
             className="w-full p-2 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
