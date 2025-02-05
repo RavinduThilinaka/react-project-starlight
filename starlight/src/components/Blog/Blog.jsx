@@ -4,6 +4,7 @@ import Blog2 from "../../assets/blog2.jpg"
 import Blog3 from "../../assets/blog3.jpg"
 import Blog4 from "../../assets/blog4.jpg"
 import { UpdateFollower } from 'react-mouse-follower'
+import { data } from 'react-router-dom'
 
 const BlogData = [
     {
@@ -47,7 +48,7 @@ function Blog() {
                     {
                         BlogData.map((data) =>{
                             return(
-                                <div className="flex flex-col items-center justify-center gap-6 p-5 max-w-[300px] mx-auto shadow-lg rounded-md bg-white hover:-translate-y-2 duration-300 h-[400px]">
+                                <div className="flex flex-col items-center justify-center gap-6 p-5 max-w-[300px] mx-auto shadow-lg rounded-md bg-white hover:-translate-y-2 duration-300 h-[400px]" key={data.id}>
                                     <img src={data.img} alt="" className="w-full h-[200px] object-cover rounded-md" />
                                     <div className="space-y-2">
                                         <h1 className='text-xl font-bold line-clamp-2'>{data.title}</h1>
