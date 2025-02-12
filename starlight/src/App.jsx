@@ -10,6 +10,7 @@ import { UpdateFollower } from "react-mouse-follower";
 import Register from "./Login_Register/Register";
 import Login from "./Login_Register/Login";
 import Admin from "./components/Admin/Admin";
+import UserTable from "./components/Admin/UserTable";
 
 export default function App() {
   return (
@@ -55,6 +56,7 @@ export default function App() {
           <Route path="/admin" element={<Admin />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/user" element={<UserTable />} />
         </Routes>
       </main>
     </Router>
