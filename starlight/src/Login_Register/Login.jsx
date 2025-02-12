@@ -23,7 +23,8 @@ const Login = () => {
         localStorage.setItem('userAge',result.data.age);
         localStorage.setItem('userRole',result.data.role);
         localStorage.setItem('userPassword',result.data.password);
-
+        localStorage.setItem('authToken', result.data.token);
+        localStorage.setItem('userFirstLetter', result.data.name.charAt(0));
         const role = result.data.role;
 
         switch(role){

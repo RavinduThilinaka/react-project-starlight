@@ -9,12 +9,14 @@ import Footer from "./components/Navbar/Footer";
 import { UpdateFollower } from "react-mouse-follower";
 import Register from "./Login_Register/Register";
 import Login from "./Login_Register/Login";
+import Admin from "./components/Admin/Admin";
+import UserTable from "./components/Admin/UserTable";
 
 export default function App() {
   return (
     <Router>
       <main className="overflow-x-hidden">
-        <Navbar /> {/* Navbar remains common across all pages */}
+       
 
         <Routes>
           {/* Home Page (/) */}
@@ -29,6 +31,7 @@ export default function App() {
                     followSpeed: 1.5,
                   }}
                 >
+                   <Navbar /> {/* Navbar remains common across all pages */}
                   <Hero />
                 </UpdateFollower>
 
@@ -50,8 +53,10 @@ export default function App() {
           />
 
           {/* Register Page (/register) */}
+          <Route path="/admin" element={<Admin />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/user" element={<UserTable />} />
         </Routes>
       </main>
     </Router>

@@ -33,7 +33,7 @@ app.post('/updateUser/:id',(req,res) =>{
     });
 });
 
-app.post('/deleteUser/:id',(req,res) =>{
+app.delete('/deleteUser/:id',(req,res) =>{
     controller.deleteUser(req.body,(callback =>{
         res.send(callback)
     }));
