@@ -12,6 +12,8 @@ import Login from "./Login_Register/Login";
 import Admin from "./components/Admin/Admin";
 import UserTable from "./components/Admin/UserTable";
 import AnalyticsDashboard from "./components/Admin/AnalyticsDashboard";
+import PaymentPage from "./components/Payment/PaymentPage";
+import Product from "./components/Product/Product";
 
 export default function App() {
   return (
@@ -59,6 +61,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/user" element={<UserTable />} />
           <Route path="/analytics" element={<AnalyticsDashboard />} />
+          <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/product" element={<Product />} />
         </Routes>
       </main>
     </Router>
