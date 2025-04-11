@@ -11,6 +11,7 @@ import Register from "./Login_Register/Register";
 import Login from "./Login_Register/Login";
 import Admin from "./components/Admin/Admin";
 import UserTable from "./components/Admin/UserTable";
+import AnalyticsDashboard from "./components/Admin/AnalyticsDashboard";
 
 export default function App() {
   return (
@@ -57,6 +58,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/user" element={<UserTable />} />
+          <Route path="/analytics" element={<AnalyticsDashboard />} />
         </Routes>
       </main>
     </Router>

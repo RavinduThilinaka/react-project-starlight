@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Logo from "../assets/logo.png";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 const Login = () => {
 
@@ -80,7 +80,7 @@ const Login = () => {
           </button>
         </form>
         <p className="text-center mt-4 text-sm">
-          Already have an account? <a href="./login.html" className="text-blue-500">Sign up</a>
+          Already have an account? <Link to={"/register"} className="text-blue-500">Sign up</Link>
         </p>
       </div>
     </div>
