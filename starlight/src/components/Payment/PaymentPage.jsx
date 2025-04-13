@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaCreditCard, FaLock, FaUser, FaCalendarAlt, FaCheck } from 'react-icons/fa';
 import { SiVisa, SiMastercard, SiPaypal, SiApplepay } from 'react-icons/si';
+import { useNavigate } from 'react-router-dom';
 
 const PaymentPage = () => {
+  const navigate = useNavigate();
   const [cardNumber, setCardNumber] = useState('');
   const [cardHolder, setCardHolder] = useState('');
   const [expiry, setExpiry] = useState('');
@@ -11,15 +13,76 @@ const PaymentPage = () => {
   const [paymentMethod, setPaymentMethod] = useState('credit');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
     setIsProcessing(true);
-    // Simulate payment processing
-    setTimeout(() => {
+
+    // Validate inputs
+    if (!cardNumber || cardNumber.replace(/\s/g, '').length !== 16) {
+      setError('Please enter a valid 16-digit card number');
       setIsProcessing(false);
+      return;
+    }
+    if (!cardHolder) {
+      setError('Please enter card holder name');
+      setIsProcessing(false);
+      return;
+    }
+    if (!expiry || !/^\d{2}\/\d{2}$/.test(expiry)) {
+      setError('Please enter a valid expiry date (MM/YY)');
+      setIsProcessing(false);
+      return;
+    }
+    if (!cvv || (cvv.length !== 3 && cvv.length !== 4)) {
+      setError('Please enter a valid CVV (3 or 4 digits)');
+      setIsProcessing(false);
+      return;
+    }
+
+    const paymentData = {
+      cardNumber: cardNumber.replace(/\s/g, ''),
+      holderName: cardHolder,
+      expDate: expiry,
+      cvv: cvv
+    };
+
+    try {
+      const response = await fetch("http://localhost:3001/api/addPayment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(paymentData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Payment failed");
+      }
+
       setIsSuccess(true);
-    }, 2000);
+      
+      // Reset form
+      setCardNumber('');
+      setCardHolder('');
+      setExpiry('');
+      setCvv('');
+
+      // Navigate to home after 2 seconds
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+
+    } catch (error) {
+      console.error("Payment error:", error);
+      setError(error.message || "Payment failed. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const formatCardNumber = (value) => {
@@ -32,19 +95,12 @@ const PaymentPage = () => {
       parts.push(match.substring(i, i + 4));
     }
     
-    if (parts.length) {
-      return parts.join(' ');
-    } else {
-      return value;
-    }
+    return parts.length ? parts.join(' ') : value;
   };
 
   const formatExpiry = (value) => {
     const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    if (v.length >= 3) {
-      return `${v.substring(0, 2)}/${v.substring(2)}`;
-    }
-    return value;
+    return v.length >= 3 ? `${v.substring(0, 2)}/${v.substring(2)}` : value;
   };
 
   const fadeIn = {
@@ -84,13 +140,7 @@ const PaymentPage = () => {
               <FaCheck className="text-white text-3xl" />
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">Payment Successful!</h2>
-            <p className="text-gray-300 mb-6">Your transaction has been completed successfully.</p>
-            <button
-              onClick={() => setIsSuccess(false)}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200"
-            >
-              Make Another Payment
-            </button>
+            <p className="text-gray-300 mb-6"></p>
           </motion.div>
         ) : (
           <motion.div
@@ -99,7 +149,6 @@ const PaymentPage = () => {
             variants={fadeIn}
             className="bg-brandDark/90 border border-gray-700 rounded-2xl shadow-xl overflow-hidden"
           >
-            {/* Payment Method Tabs */}
             <div className="flex border-b border-gray-700">
               {[
                 { id: 'credit', icon: <FaCreditCard />, label: 'Card' },
@@ -120,7 +169,6 @@ const PaymentPage = () => {
             <div className="p-6 sm:p-8">
               {paymentMethod === 'credit' && (
                 <form onSubmit={handleSubmit}>
-                  {/* Card Preview */}
                   <motion.div
                     variants={cardTilt}
                     className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-5 mb-6 text-white relative overflow-hidden h-44"
@@ -142,7 +190,6 @@ const PaymentPage = () => {
                     </div>
                   </motion.div>
 
-                  {/* Card Number */}
                   <div className="mb-6">
                     <label className="block text-gray-300 text-sm font-medium mb-2 flex items-center">
                       <FaCreditCard className="mr-2" />
@@ -158,7 +205,6 @@ const PaymentPage = () => {
                     />
                   </div>
 
-                  {/* Card Holder */}
                   <div className="mb-6">
                     <label className="block text-gray-300 text-sm font-medium mb-2 flex items-center">
                       <FaUser className="mr-2" />
@@ -174,7 +220,6 @@ const PaymentPage = () => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 mb-6">
-                    {/* Expiry Date */}
                     <div>
                       <label className="block text-gray-300 text-sm font-medium mb-2 flex items-center">
                         <FaCalendarAlt className="mr-2" />
@@ -190,7 +235,6 @@ const PaymentPage = () => {
                       />
                     </div>
 
-                    {/* CVV */}
                     <div>
                       <label className="block text-gray-300 text-sm font-medium mb-2 flex items-center">
                         <FaLock className="mr-2" />
@@ -206,6 +250,12 @@ const PaymentPage = () => {
                       />
                     </div>
                   </div>
+
+                  {error && (
+                    <div className="mb-4 text-red-400 text-sm text-center">
+                      {error}
+                    </div>
+                  )}
 
                   <button
                     type="submit"
