@@ -15,7 +15,7 @@ const AdminSidebar = ({ isSidebarOpen, handleLogout }) => {
     { name: 'Dashboard', icon: <AiOutlineDashboard className="w-5 h-5"/>, path: "/admin" },
     { name: 'Users', icon: <FiUsers className="w-5 h-5" />, path: "/users" },
     { name: 'Orders', icon: <AiOutlineShoppingCart className="w-5 h-5" />, path: "/orders" },
-    { name: 'Payments', icon: <AiOutlineDollar className="w-5 h-5" />, path: "/payments" },
+    { name: 'Payments', icon: <AiOutlineDollar className="w-5 h-5" />, path: "/displayPayment" },
     { name: 'Analytics', icon: <AiOutlinePieChart className="w-5 h-5" />, path: "/analytics" },
     { name: 'Settings', icon: <AiOutlineSetting className="w-5 h-5" />, path: "/settings" },
   ];
