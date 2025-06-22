@@ -14,6 +14,7 @@ import UserTable from "./components/Admin/UserTable";
 import AnalyticsDashboard from "./components/Admin/AnalyticsDashboard";
 import PaymentPage from "./components/Payment/PaymentPage";
 import Product from "./components/Product/Product";
+import DisplayPayment from "./components/Payment/DisplayPayment";
 
 export default function App() {
   return (
@@ -34,7 +35,7 @@ export default function App() {
                     followSpeed: 1.5,
                   }}
                 >
-                   <Navbar /> {/* Navbar remains common across all pages */}
+                   <Navbar /> 
                   <Hero />
                 </UpdateFollower>
 
@@ -63,6 +64,7 @@ export default function App() {
           <Route path="/analytics" element={<AnalyticsDashboard />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/product" element={<Product />} />
+          <Route path="/displayPayment" element={<DisplayPayment />} />
         </Routes>
       </main>
     </Router>

@@ -4,27 +4,12 @@ import {
   LineChart, Line, BarChart, Bar, 
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts';
-import { 
-  AiOutlineDashboard, AiOutlineUser, AiOutlineShoppingCart, 
-  AiOutlineDollar, AiOutlinePieChart, AiOutlineLogout,
-  AiOutlineSetting, AiOutlineBell 
-} from 'react-icons/ai';
+import { AiOutlineMenu, AiOutlineBell } from 'react-icons/ai';
+import Sidebar from './AdminSidebar';
 
 const AnalyticsDashboard = () => {
-  const [active, setActive] = useState('Dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Menu items
-  const menuItems = [
-    { name: 'Dashboard', icon: <AiOutlineDashboard className="w-5 h-5" /> },
-    { name: 'Users', icon: <AiOutlineUser className="w-5 h-5" /> },
-    { name: 'Orders', icon: <AiOutlineShoppingCart className="w-5 h-5" /> },
-    { name: 'Payments', icon: <AiOutlineDollar className="w-5 h-5" /> },
-    { name: 'Analytics', icon: <AiOutlinePieChart className="w-5 h-5" /> },
-    { name: 'Settings', icon: <AiOutlineSetting className="w-5 h-5" /> },
-  ];
-
-  // Sample data
   const analyticsData = [
     { date: 'Jan 1', users: 120, orders: 85, payments: 78 },
     { date: 'Jan 2', users: 180, orders: 120, payments: 112 },
@@ -35,7 +20,6 @@ const AnalyticsDashboard = () => {
     { date: 'Jan 7', users: 350, orders: 240, payments: 225 },
   ];
 
-  // Summary statistics
   const totalUsers = analyticsData.reduce((sum, item) => sum + item.users, 0);
   const totalOrders = analyticsData.reduce((sum, item) => sum + item.orders, 0);
   const totalPayments = analyticsData.reduce((sum, item) => sum + item.payments, 0);
@@ -52,59 +36,12 @@ const AnalyticsDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <motion.aside 
-        initial={{ x: -100 }}
-        animate={{ x: isSidebarOpen ? 0 : -300 }}
-        transition={{ type: "spring", stiffness: 100 }}
-        className="w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white p-6 flex flex-col shadow-xl z-10 fixed h-full"
-      >
-        <motion.h1 
-          whileHover={{ scale: 1.05 }}
-          className="text-2xl font-bold mb-8 flex items-center gap-2"
-        >
-          <span className="bg-blue-500 p-2 rounded-lg">Admin</span>
-          <span className="text-gray-300">Panel</span>
-        </motion.h1>
-        
-        <nav className="flex-1 space-y-2">
-          {menuItems.map((item) => (
-            <motion.div
-              key={item.name}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
-                active === item.name 
-                  ? "bg-blue-600 shadow-lg" 
-                  : "hover:bg-gray-700 hover:shadow-md"
-              }`}
-              onClick={() => setActive(item.name)}
-            >
-              <motion.span 
-                animate={{ rotate: active === item.name ? [0, 10, -5, 0] : 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                {item.icon}
-              </motion.span>
-              <span className="font-medium">{item.name}</span>
-            </motion.div>
-          ))}
-        </nav>
+      <Sidebar 
+        isSidebarOpen={isSidebarOpen} 
+        handleLogout={handleLogout}
+      />
 
-        <motion.button 
-          whileHover={{ scale: 1.03, backgroundColor: "#dc2626" }}
-          whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-3 p-3 mt-auto rounded-lg bg-red-600 hover:bg-red-700 transition-all shadow-md"
-          onClick={handleLogout}
-        >
-          <AiOutlineLogout className="w-5 h-5"/>
-          <span>Logout</span>
-        </motion.button>
-      </motion.aside>
-
-      {/* Main Content */}
       <div className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        {/* Header */}
         <header className="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-10">
           <motion.button
             whileHover={{ scale: 1.1 }}
@@ -112,9 +49,7 @@ const AnalyticsDashboard = () => {
             onClick={toggleSidebar}
             className="p-2 rounded-lg hover:bg-gray-100"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <AiOutlineMenu className="w-6 h-6 text-gray-600" />
           </motion.button>
           
           <div className="flex items-center space-x-4">
@@ -138,7 +73,6 @@ const AnalyticsDashboard = () => {
           </div>
         </header>
 
-        {/* Dashboard Content */}
         <main className="p-6">
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
@@ -149,7 +83,6 @@ const AnalyticsDashboard = () => {
             Analytics Dashboard
           </motion.h1>
           
-          {/* Summary Cards */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -177,9 +110,7 @@ const AnalyticsDashboard = () => {
             ))}
           </motion.div>
           
-          {/* Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Line Chart - Users Growth */}
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -209,7 +140,6 @@ const AnalyticsDashboard = () => {
               </div>
             </motion.div>
             
-            {/* Bar Chart - Orders & Payments */}
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -243,7 +173,6 @@ const AnalyticsDashboard = () => {
             </motion.div>
           </div>
           
-          {/* Recent Activity Table */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
