@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FaShoppingCart, FaTrash, FaSearch, FaChevronDown } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
-import Logo from "../../assets/logo.png"
-import Shoes from "../../assets/shoes.png"
-import Laptop from "../../assets/laptop.png"
-import Cloths from "../../assets/cloths.png"
-import Phone from "../../assets/phones.png"
-import Headphone from "../../assets/headphones4.png"
+import CheckoutPage from './CheckoutPage';
+import Logo from "../../assets/logo.png";
+import Shoes from "../../assets/shoes.png";
+import Laptop from "../../assets/laptop.png";
+import Cloths from "../../assets/cloths.png";
+import Phone from "../../assets/phones.png";
+import Headphone from "../../assets/headphones4.png";
 
 const products = [
   {
@@ -25,14 +26,14 @@ const products = [
   },
   {
     id: 2,
-    image: './image/3.jpg',
+    image: Headphone,
     title: 'Leather Wallet',
     price: 45,
     category: 'Accessories'
   },
   {
     id: 3,
-    image:Cloths,
+    image: Cloths,
     title: 'Cotton T-Shirt',
     price: 25,
     category: 'Clothing'
@@ -53,7 +54,7 @@ const products = [
   },
   {
     id: 6,
-    image: './image/7.jpg',
+    image: Cloths,
     title: 'Sunglasses',
     price: 65,
     category: 'Accessories'
@@ -91,6 +92,7 @@ const EcommercePage = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCheckout, setIsCheckout] = useState(false);
 
   const categories = ['All', ...new Set(products.map(item => item.category))];
 
@@ -112,6 +114,26 @@ const EcommercePage = () => {
 
   const totalPrice = cart.reduce((sum, item) => sum + item.price, 0);
 
+  const handleBackToShop = () => {
+    setIsCheckout(false);
+  };
+
+  const handlePlaceOrder = (orderData) => {
+    console.log('Order placed:', orderData, cart);
+    setCart([]);
+  };
+
+  if (isCheckout) {
+    return (
+      <CheckoutPage 
+        cart={cart} 
+        totalPrice={totalPrice} 
+        onBackToShop={handleBackToShop}
+        onPlaceOrder={handlePlaceOrder}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-brandDark text-white">
       {/* Navigation */}
@@ -131,7 +153,6 @@ const EcommercePage = () => {
           </motion.div>
 
           <div className="flex items-center space-x-4">
-            {/* Search Bar */}
             <motion.div 
               className="relative hidden md:block"
               initial={{ opacity: 0 }}
@@ -148,7 +169,6 @@ const EcommercePage = () => {
               <FaSearch className="absolute right-3 top-2 text-gray-500" />
             </motion.div>
 
-            {/* Category Dropdown */}
             <motion.div 
               className="relative"
               initial={{ opacity: 0 }}
@@ -190,7 +210,6 @@ const EcommercePage = () => {
               </AnimatePresence>
             </motion.div>
 
-            {/* Cart Button */}
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -211,7 +230,7 @@ const EcommercePage = () => {
           </div>
         </div>
       </nav>
-      {/* Mobile Search */}
+
       <div className="md:hidden px-4 py-2 bg-brandDark border-b border-gray-700">
         <div className="relative">
           <input
@@ -225,10 +244,8 @@ const EcommercePage = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row">
-          {/* Products Grid - Now takes full width when cart is closed */}
           <div className={`w-full ${isCartOpen ? 'lg:w-3/4' : 'lg:w-full'} pr-0 lg:pr-6 transition-all duration-300`}>
             <h2 className="text-2xl font-bold mb-6">
               {selectedCategory === 'All' ? 'All Products' : selectedCategory}
@@ -281,7 +298,6 @@ const EcommercePage = () => {
             )}
           </div>
 
-          {/* Cart Sidebar */}
           <AnimatePresence>
             {isCartOpen && (
               <motion.div
@@ -357,6 +373,10 @@ const EcommercePage = () => {
                     </div>
                     <button
                       disabled={cart.length === 0}
+                      onClick={() => {
+                        setIsCheckout(true);
+                        setIsCartOpen(false);
+                      }}
                       className={`w-full py-3 rounded-md font-medium transition ${
                         cart.length === 0
                           ? 'bg-gray-600 cursor-not-allowed text-gray-400'
