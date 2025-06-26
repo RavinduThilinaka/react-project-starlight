@@ -6,6 +6,7 @@ const host = "localhost";
 const mongoose = require('mongoose');
 const router = require('./userManagement/router');
 const router2 = require('./paymentManagement/router')
+const router3 = require('./orderManagement/router')
 const cookieParser = require('cookie-parser');
 
 app.use(cors({
@@ -37,3 +38,4 @@ const server = app.listen(port,host,()=>{
 
 app.use('/api',router);
 app.use('/api',router2);
+app.use('/api',router3);
