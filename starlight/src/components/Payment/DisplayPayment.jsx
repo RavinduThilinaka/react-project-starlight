@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AiOutlineMenu, AiOutlineBell, AiOutlineCreditCard } from 'react-icons/ai';
+import { AiOutlineMenu, AiOutlineBell, AiOutlineCreditCard, AiOutlineDelete, AiOutlineEdit, AiOutlineClose } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from '../Admin/AdminSidebar';
@@ -11,6 +11,14 @@ const DisplayPayment = () => {
   const [error, setError] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPayment, setCurrentPayment] = useState(null);
+  const [formData, setFormData] = useState({
+    cardNumber: '',
+    holderName: '',
+    expDate: '',
+    cvv: ''
+  });
   const navigate = useNavigate();
 
   const userName = localStorage.getItem('userName');
@@ -54,7 +62,58 @@ const DisplayPayment = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const handleDeletePayment = async (paymentId) => {
+    try {
+      await axios.delete(`http://localhost:3001/api/deletePayment/${paymentId}`);
+      setPayments(payments.filter(payment => payment?._id !== paymentId));
+      alert('Payment deleted successfully');
+    } catch (err) {
+      console.error("Error deleting payment:", err);
+      alert('Failed to delete payment');
+    }
+  };
+
+  const handleUpdateClick = (payment) => {
+    setCurrentPayment(payment);
+    setFormData({
+      cardNumber: payment?.cardNumber || '',
+      holderName: payment?.holderName || '',
+      expDate: payment?.expDate || '',
+      cvv: payment?.cvv || ''
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleUpdatePayment = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.put(
+        `http://localhost:3001/api/updatePayment/${currentPayment?._id}`,
+        formData
+      );
+      
+      setPayments(payments.map(payment => 
+        payment?._id === currentPayment?._id ? response.data.updatedPayment : payment
+      ));
+      
+      setIsModalOpen(false);
+      alert('Payment updated successfully');
+    } catch (err) {
+      console.error("Error updating payment:", err);
+      alert('Failed to update payment');
+    }
+  };
+
   const filteredPayments = payments.filter(payment => {
+    if (!payment) return false;
     const searchLower = searchTerm.toLowerCase();
     return (
       (payment.cardNumber?.toString()?.toLowerCase().includes(searchLower)) ||
@@ -198,6 +257,9 @@ const DisplayPayment = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         CVV
                       </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -205,7 +267,7 @@ const DisplayPayment = () => {
                       {filteredPayments.length > 0 ? (
                         filteredPayments.map((payment, index) => (
                           <motion.tr
-                            key={index}
+                            key={payment?._id || index}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05 }}
@@ -213,16 +275,36 @@ const DisplayPayment = () => {
                             className="transition-colors"
                           >
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {formatCardNumber(payment.cardNumber)}
+                              {formatCardNumber(payment?.cardNumber)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {payment.holderName || 'N/A'}
+                              {payment?.holderName || 'N/A'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {payment.expDate || 'N/A'}
+                              {payment?.expDate || 'N/A'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {formatCVV(payment.cvv)}
+                              {formatCVV(payment?.cvv)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex space-x-2">
+                              <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => handleUpdateClick(payment)}
+                                className="p-2 text-blue-500 hover:bg-blue-50 rounded-full"
+                                title="Edit Payment"
+                              >
+                                <AiOutlineEdit className="w-5 h-5" />
+                              </motion.button>
+                              <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => payment?._id && handleDeletePayment(payment._id)}
+                                className="p-2 text-red-500 hover:bg-red-50 rounded-full"
+                                title="Delete Payment"
+                              >
+                                <AiOutlineDelete className="w-5 h-5" />
+                              </motion.button>
                             </td>
                           </motion.tr>
                         ))
@@ -232,7 +314,7 @@ const DisplayPayment = () => {
                           animate={{ opacity: 1 }}
                           className="transition-colors"
                         >
-                          <td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">
+                          <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
                             {payments.length === 0 ? 'No payment records found' : 'No matching payments found'}
                           </td>
                         </motion.tr>
@@ -244,6 +326,104 @@ const DisplayPayment = () => {
             </motion.div>
           )}
         </div>
+
+        {/* Update Payment Modal */}
+        <AnimatePresence>
+          {isModalOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                className="bg-white rounded-xl shadow-xl w-full max-w-md"
+              >
+                <div className="flex justify-between items-center border-b p-4">
+                  <h3 className="text-lg font-semibold text-gray-800">Update Payment</h3>
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <AiOutlineClose className="w-5 h-5" />
+                  </button>
+                </div>
+                <form onSubmit={handleUpdatePayment} className="p-6">
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Card Number
+                    </label>
+                    <input
+                      type="text"
+                      name="cardNumber"
+                      value={formData.cardNumber}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Card Holder Name
+                    </label>
+                    <input
+                      type="text"
+                      name="holderName"
+                      value={formData.holderName}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Expiry Date
+                    </label>
+                    <input
+                      type="text"
+                      name="expDate"
+                      value={formData.expDate}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      CVV
+                    </label>
+                    <input
+                      type="text"
+                      name="cvv"
+                      value={formData.cvv}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                      className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      Update Payment
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <motion.footer 
           initial={{ opacity: 0 }}

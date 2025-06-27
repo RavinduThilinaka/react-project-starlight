@@ -12,11 +12,13 @@ const CheckoutPage = ({ cart = [], totalPrice = 0, onBackToShop }) => {
     city: '',
     country: '',
     zipCode: '',
-    phone: ''
+    mobileNumber: ''
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderSubmitted, setOrderSubmitted] = useState(false);
+  const [orderDetails, setOrderDetails] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,27 +43,51 @@ const CheckoutPage = ({ cart = [], totalPrice = 0, onBackToShop }) => {
     if (!formData.city.trim()) newErrors.city = 'City is required';
     if (!formData.country.trim()) newErrors.country = 'Country is required';
     if (!formData.zipCode.trim()) newErrors.zipCode = 'Zip code is required';
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+    if (!formData.mobileNumber.trim()) newErrors.mobileNumber = 'Phone number is required';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      setIsSubmitting(true);
-      setTimeout(() => {
-        setIsSubmitting(false);
-        navigate('/payment', {
-          state: {
-            formData,
-            cart,
-            totalPrice,
-            animation: true
-          }
-        });
-      }, 1000);
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      // Prepare order data
+      const orderData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        mobileNumber: formData.mobileNumber,
+        country: formData.country,
+        address: formData.address,
+        city: formData.city,
+        zipCode: formData.zipCode,
+        items: cart.map(item => ({
+          productId: item.id || Math.random().toString(36).substr(2, 9), // Fallback ID if not provided
+          title: item.title,
+          price: item.price,
+          quantity: item.quantity || 1
+        })),
+        totalAmount: totalPrice
+      };
+
+      // In a real app, you would send this to your backend
+      // For now, we'll just simulate a successful order
+      setOrderDetails({
+        ...orderData,
+        orderId: `ORD-${Math.floor(Math.random() * 1000000)}`,
+        orderDate: new Date().toLocaleDateString()
+      });
+      setOrderSubmitted(true);
+      
+    } catch (error) {
+      console.error('Order submission error:', error);
+      alert('There was an error submitting your order. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -90,124 +116,164 @@ const CheckoutPage = ({ cart = [], totalPrice = 0, onBackToShop }) => {
               transition={{ delay: 0.1 }}
               className="bg-gray-800 rounded-lg shadow-md p-6 mb-6 border border-gray-700"
             >
-              <h2 className="text-xl font-bold mb-6 flex items-center">
-                <FaUser className="mr-2 text-indigo-400" />
-                Shipping Information
-              </h2>
-              
-              <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-gray-300 mb-2">First Name</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        className={`w-full bg-gray-700 rounded-md py-2 px-4 pl-10 text-white focus:outline-none focus:ring-2 ${errors.firstName ? 'focus:ring-red-500 border-red-500' : 'focus:ring-indigo-500 border-gray-600'}`}
-                        placeholder="John"
-                      />
-                      <FaUser className="absolute left-3 top-3 text-gray-400" />
-                    </div>
-                    {errors.firstName && <p className="text-red-400 text-sm mt-1">{errors.firstName}</p>}
-                  </div>
+              {!orderSubmitted ? (
+                <>
+                  <h2 className="text-xl font-bold mb-6 flex items-center">
+                    <FaUser className="mr-2 text-indigo-400" />
+                    Shipping Information
+                  </h2>
                   
-                  <div>
-                    <label className="block text-gray-300 mb-2">Last Name</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        className={`w-full bg-gray-700 rounded-md py-2 px-4 pl-10 text-white focus:outline-none focus:ring-2 ${errors.lastName ? 'focus:ring-red-500 border-red-500' : 'focus:ring-indigo-500 border-gray-600'}`}
-                        placeholder="Doe"
-                      />
-                      <FaUser className="absolute left-3 top-3 text-gray-400" />
+                  <form onSubmit={handleSubmit}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-gray-300 mb-2">First Name</label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            name="firstName"
+                            value={formData.firstName}
+                            onChange={handleChange}
+                            className={`w-full bg-gray-700 rounded-md py-2 px-4 pl-10 text-white focus:outline-none focus:ring-2 ${errors.firstName ? 'focus:ring-red-500 border-red-500' : 'focus:ring-indigo-500 border-gray-600'}`}
+                            placeholder="John"
+                          />
+                          <FaUser className="absolute left-3 top-3 text-gray-400" />
+                        </div>
+                        {errors.firstName && <p className="text-red-400 text-sm mt-1">{errors.firstName}</p>}
+                      </div>
+                      
+                      <div>
+                        <label className="block text-gray-300 mb-2">Last Name</label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleChange}
+                            className={`w-full bg-gray-700 rounded-md py-2 px-4 pl-10 text-white focus:outline-none focus:ring-2 ${errors.lastName ? 'focus:ring-red-500 border-red-500' : 'focus:ring-indigo-500 border-gray-600'}`}
+                            placeholder="Doe"
+                          />
+                          <FaUser className="absolute left-3 top-3 text-gray-400" />
+                        </div>
+                        {errors.lastName && <p className="text-red-400 text-sm mt-1">{errors.lastName}</p>}
+                      </div>
                     </div>
-                    {errors.lastName && <p className="text-red-400 text-sm mt-1">{errors.lastName}</p>}
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-gray-300 mb-2">Phone Number</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className={`w-full bg-gray-700 rounded-md py-2 px-4 pl-10 text-white focus:outline-none focus:ring-2 ${errors.phone ? 'focus:ring-red-500 border-red-500' : 'focus:ring-indigo-500 border-gray-600'}`}
-                        placeholder="+1 234 567 890"
-                      />
-                      <FaPhone className="absolute left-3 top-3 text-gray-400" />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-gray-300 mb-2">Phone Number</label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            name="mobileNumber"
+                            value={formData.mobileNumber}
+                            onChange={handleChange}
+                            className={`w-full bg-gray-700 rounded-md py-2 px-4 pl-10 text-white focus:outline-none focus:ring-2 ${errors.mobileNumber ? 'focus:ring-red-500 border-red-500' : 'focus:ring-indigo-500 border-gray-600'}`}
+                            placeholder="0771234567"
+                          />
+                          <FaPhone className="absolute left-3 top-3 text-gray-400" />
+                        </div>
+                        {errors.mobileNumber && <p className="text-red-400 text-sm mt-1">{errors.mobileNumber}</p>}
+                      </div>
                     </div>
-                    {errors.phone && <p className="text-red-400 text-sm mt-1">{errors.phone}</p>}
-                  </div>
-                </div>
-                
-                <div className="mb-4">
-                  <label className="block text-gray-300 mb-2">Address</label>
-                  <div className="relative">
-                    <textarea
-                      name="address"
-                      value={formData.address}
-                      onChange={handleChange}
-                      rows="3"
-                      className={`w-full bg-gray-700 rounded-md py-2 px-4 pl-10 text-white focus:outline-none focus:ring-2 ${errors.address ? 'focus:ring-red-500 border-red-500' : 'focus:ring-indigo-500 border-gray-600'}`}
-                      placeholder="123 Main Street, Apt 4B"
-                    />
-                    <FaMapMarkerAlt className="absolute left-3 top-3 text-gray-400" />
-                  </div>
-                  {errors.address && <p className="text-red-400 text-sm mt-1">{errors.address}</p>}
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div>
-                    <label className="block text-gray-300 mb-2">City</label>
-                    <input
-                      type="text"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      className={`w-full bg-gray-700 rounded-md py-2 px-4 text-white focus:outline-none focus:ring-2 ${errors.city ? 'focus:ring-red-500 border-red-500' : 'focus:ring-indigo-500 border-gray-600'}`}
-                      placeholder="New York"
-                    />
-                    {errors.city && <p className="text-red-400 text-sm mt-1">{errors.city}</p>}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-gray-300 mb-2">Country</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="country"
-                        value={formData.country}
-                        onChange={handleChange}
-                        className={`w-full bg-gray-700 rounded-md py-2 px-4 pl-10 text-white focus:outline-none focus:ring-2 ${errors.country ? 'focus:ring-red-500 border-red-500' : 'focus:ring-indigo-500 border-gray-600'}`}
-                        placeholder="United States"
-                      />
-                      <FaGlobe className="absolute left-3 top-3 text-gray-400" />
+                    
+                    <div className="mb-4">
+                      <label className="block text-gray-300 mb-2">Address</label>
+                      <div className="relative">
+                        <textarea
+                          name="address"
+                          value={formData.address}
+                          onChange={handleChange}
+                          rows="3"
+                          className={`w-full bg-gray-700 rounded-md py-2 px-4 pl-10 text-white focus:outline-none focus:ring-2 ${errors.address ? 'focus:ring-red-500 border-red-500' : 'focus:ring-indigo-500 border-gray-600'}`}
+                          placeholder="123 Main Street"
+                        />
+                        <FaMapMarkerAlt className="absolute left-3 top-3 text-gray-400" />
+                      </div>
+                      {errors.address && <p className="text-red-400 text-sm mt-1">{errors.address}</p>}
                     </div>
-                    {errors.country && <p className="text-red-400 text-sm mt-1">{errors.country}</p>}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-gray-300 mb-2">Zip Code</label>
-                    <input
-                      type="text"
-                      name="zipCode"
-                      value={formData.zipCode}
-                      onChange={handleChange}
-                      className={`w-full bg-gray-700 rounded-md py-2 px-4 text-white focus:outline-none focus:ring-2 ${errors.zipCode ? 'focus:ring-red-500 border-red-500' : 'focus:ring-indigo-500 border-gray-600'}`}
-                      placeholder="10001"
-                    />
-                    {errors.zipCode && <p className="text-red-400 text-sm mt-1">{errors.zipCode}</p>}
-                  </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div>
+                        <label className="block text-gray-300 mb-2">City</label>
+                        <input
+                          type="text"
+                          name="city"
+                          value={formData.city}
+                          onChange={handleChange}
+                          className={`w-full bg-gray-700 rounded-md py-2 px-4 text-white focus:outline-none focus:ring-2 ${errors.city ? 'focus:ring-red-500 border-red-500' : 'focus:ring-indigo-500 border-gray-600'}`}
+                          placeholder="Colombo"
+                        />
+                        {errors.city && <p className="text-red-400 text-sm mt-1">{errors.city}</p>}
+                      </div>
+                      
+                      <div>
+                        <label className="block text-gray-300 mb-2">Country</label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            name="country"
+                            value={formData.country}
+                            onChange={handleChange}
+                            className={`w-full bg-gray-700 rounded-md py-2 px-4 pl-10 text-white focus:outline-none focus:ring-2 ${errors.country ? 'focus:ring-red-500 border-red-500' : 'focus:ring-indigo-500 border-gray-600'}`}
+                            placeholder="Sri Lanka"
+                          />
+                          <FaGlobe className="absolute left-3 top-3 text-gray-400" />
+                        </div>
+                        {errors.country && <p className="text-red-400 text-sm mt-1">{errors.country}</p>}
+                      </div>
+                      
+                      <div>
+                        <label className="block text-gray-300 mb-2">Zip Code</label>
+                        <input
+                          type="text"
+                          name="zipCode"
+                          value={formData.zipCode}
+                          onChange={handleChange}
+                          className={`w-full bg-gray-700 rounded-md py-2 px-4 text-white focus:outline-none focus:ring-2 ${errors.zipCode ? 'focus:ring-red-500 border-red-500' : 'focus:ring-indigo-500 border-gray-600'}`}
+                          placeholder="00100"
+                        />
+                        {errors.zipCode && <p className="text-red-400 text-sm mt-1">{errors.zipCode}</p>}
+                      </div>
+                    </div>
+                    
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || cart.length === 0}
+                      className={`w-full py-3 rounded-md font-medium transition flex items-center justify-center ${
+                        isSubmitting || cart.length === 0
+                          ? 'bg-gray-600 cursor-not-allowed text-gray-400'
+                          : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                      }`}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Processing...
+                        </>
+                      ) : (
+                        'Order Now'
+                      )}
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <svg className="w-16 h-16 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <h2 className="text-2xl font-bold mb-2">Order Confirmed!</h2>
+                  <p className="text-gray-300 mb-6">Thank you for your order. Your order ID is: <span className="font-semibold">{orderDetails.orderId}</span></p>
+                  <button
+                    onClick={onBackToShop}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 rounded-md transition"
+                  >
+                    Continue Shopping
+                  </button>
                 </div>
-              </form>
+              )}
             </motion.div>
           </div>
           
@@ -255,27 +321,15 @@ const CheckoutPage = ({ cart = [], totalPrice = 0, onBackToShop }) => {
                 </div>
               </div>
               
-              <button
-                onClick={handleSubmit}
-                disabled={isSubmitting || cart.length === 0}
-                className={`w-full py-3 rounded-md font-medium transition flex items-center justify-center ${
-                  isSubmitting || cart.length === 0
-                    ? 'bg-gray-600 cursor-not-allowed text-gray-400'
-                    : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                }`}
-              >
-                {isSubmitting ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Processing...
-                  </>
-                ) : (
-                  'Proceed to Payment'
-                )}
-              </button>
+              {orderSubmitted && orderDetails && (
+                <div className="bg-gray-700 p-4 rounded-md mb-4">
+                  <h3 className="font-bold mb-2">Shipping Details</h3>
+                  <p className="text-sm text-gray-300">{orderDetails.firstName} {orderDetails.lastName}</p>
+                  <p className="text-sm text-gray-300">{orderDetails.address}</p>
+                  <p className="text-sm text-gray-300">{orderDetails.city}, {orderDetails.country} {orderDetails.zipCode}</p>
+                  <p className="text-sm text-gray-300">Phone: {orderDetails.mobileNumber}</p>
+                </div>
+              )}
             </motion.div>
           </div>
         </div>
