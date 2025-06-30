@@ -9,30 +9,37 @@ const OrderDisplayPage = () => {
     const fetchOrders = async () => {
       try {
         const response = await fetch('http://localhost:3001/api/getOrder');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
         
-        // Debugging: Log the API response
+        if (!response.ok) {
+          throw new Error(`Failed to fetch orders: ${response.status}`);
+        }
+        
+        const data = await response.json();
         console.log('API Response:', data);
 
-        // Handle different response formats
-        let ordersArray = [];
-        if (Array.isArray(data)) {
-          ordersArray = data;
-        } else if (data && Array.isArray(data.orders)) {
-          ordersArray = data.orders;
-        } else if (data && Array.isArray(data.data)) {
-          ordersArray = data.data;
-        } else if (data && typeof data === 'object') {
-          // If single order is returned, wrap it in an array
-          ordersArray = [data];
-        } else {
-          throw new Error('Unexpected API response format');
-        }
+        // Ensure we always have an array, even if single object is returned
+        const formattedOrders = Array.isArray(data) ? data : [data];
 
-        setOrders(ordersArray);
+        // Validate and transform each order
+        const validatedOrders = formattedOrders.map(order => ({
+          _id: order._id || `temp-${Math.random().toString(36).substr(2, 9)}`,
+          firstName: order.firstName || 'Unknown',
+          lastName: order.lastName || 'Customer',
+          mobileNumber: order.mobileNumber || 'N/A',
+          country: order.country || 'N/A',
+          address: order.address || 'N/A',
+          city: order.city || 'N/A',
+          zipCode: order.zipCode || 'N/A',
+          items: Array.isArray(order.items) ? order.items.map(item => ({
+            title: item.title || 'Unnamed Product',
+            price: item.price || 0,
+            quantity: item.quantity || 1
+          })) : [],
+          totalAmount: order.totalAmount || 0,
+          status: order.status || 'processing'
+        }));
+
+        setOrders(validatedOrders);
       } catch (err) {
         console.error('Fetch error:', err);
         setError(err.message);
@@ -77,18 +84,15 @@ const OrderDisplayPage = () => {
     );
   }
 
-  // Ensure orders is always an array before mapping
-  const safeOrders = Array.isArray(orders) ? orders : [];
-
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Orders</h1>
-          <p className="text-gray-600">Review your purchase history</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Order Management</h1>
+          <p className="text-gray-600">All customer orders in one place</p>
         </div>
 
-        {safeOrders.length === 0 ? (
+        {orders.length === 0 ? (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <svg
               className="mx-auto h-16 w-16 text-gray-400"
@@ -104,34 +108,48 @@ const OrderDisplayPage = () => {
               />
             </svg>
             <h3 className="mt-4 text-lg font-medium text-gray-900">No orders found</h3>
-            <p className="mt-2 text-gray-500">You haven't placed any orders yet.</p>
-            <button className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-              Start Shopping
-            </button>
+            <p className="mt-2 text-gray-500">No orders have been placed yet.</p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {safeOrders.map((order) => {
-              // Ensure items is always an array
-              const orderItems = Array.isArray(order.items) ? order.items : [];
-              
-              return (
-                <div
-                  key={order.id || order._id || `order-${Math.random().toString(36).substr(2, 9)}`}
-                  className="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200"
-                >
-                  <div className="px-4 py-5 sm:px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <h3 className="text-lg leading-6 font-medium text-gray-900">
-                        Order #{order.orderNumber || order.id || 'N/A'}
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Placed on {order.date ? new Date(order.date).toLocaleDateString() : 'N/A'}
-                      </p>
-                    </div>
-                    <div className="mt-3 sm:mt-0">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Order ID
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Customer
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Contact
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {orders.map((order) => (
+                    <tr key={order._id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        #{order._id.substring(0, 8)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {order.firstName} {order.lastName}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {order.mobileNumber}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${order.totalAmount.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           order.status === 'completed' || order.status === 'delivered'
                             ? 'bg-green-100 text-green-800'
                             : order.status === 'processing' || order.status === 'shipped'
@@ -139,95 +157,15 @@ const OrderDisplayPage = () => {
                             : order.status === 'cancelled' || order.status === 'refunded'
                             ? 'bg-red-100 text-red-800'
                             : 'bg-blue-100 text-blue-800'
-                        }`}
-                      >
-                        {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Processing'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="px-4 py-5 sm:p-6">
-                    <h4 className="text-md font-medium text-gray-900 mb-4">Items</h4>
-                    <ul className="divide-y divide-gray-200">
-                      {orderItems.length > 0 ? (
-                        orderItems.map((item) => (
-                          <li key={item.id || item._id || `item-${Math.random().toString(36).substr(2, 9)}`} className="py-4">
-                            <div className="flex items-start">
-                              <div className="flex-shrink-0 h-16 w-16 rounded-md overflow-hidden bg-gray-100">
-                                <img
-                                  className="h-full w-full object-cover"
-                                  src={item.image || '/placeholder-product.png'}
-                                  alt={item.name || 'Product'}
-                                  onError={(e) => {
-                                    e.target.src = '/placeholder-product.png';
-                                  }}
-                                />
-                              </div>
-                              <div className="ml-4 flex-1">
-                                <div className="flex items-start justify-between">
-                                  <div>
-                                    <h5 className="text-sm font-medium text-gray-900">
-                                      {item.name || 'Unnamed Product'}
-                                    </h5>
-                                    <p className="mt-1 text-xs text-gray-500">
-                                      SKU: {item.sku || 'N/A'}
-                                    </p>
-                                  </div>
-                                  <p className="ml-4 text-sm font-medium text-gray-900">
-                                    ${item.price ? item.price.toFixed(2) : '0.00'}
-                                  </p>
-                                </div>
-                                <div className="mt-2 flex items-center justify-between">
-                                  <p className="text-xs text-gray-500">
-                                    Quantity: {item.quantity || 1}
-                                  </p>
-                                  <p className="text-xs font-medium text-gray-900">
-                                    Total: ${(item.price && item.quantity ? (item.price * item.quantity) : 0).toFixed(2)}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          </li>
-                        ))
-                      ) : (
-                        <li className="py-4 text-center text-sm text-gray-500">
-                          No items found in this order
-                        </li>
-                      )}
-                    </ul>
-                  </div>
-
-                  <div className="px-4 py-4 sm:px-6 bg-gray-50">
-                    <div className="flex flex-col space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Subtotal</span>
-                        <span className="text-sm font-medium text-gray-900">
-                          ${order.subtotal ? order.subtotal.toFixed(2) : '0.00'}
+                        }`}>
+                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                         </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Shipping</span>
-                        <span className="text-sm font-medium text-gray-900">
-                          ${order.shipping ? order.shipping.toFixed(2) : '0.00'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Tax</span>
-                        <span className="text-sm font-medium text-gray-900">
-                          ${order.tax ? order.tax.toFixed(2) : '0.00'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between pt-3 border-t border-gray-200">
-                        <span className="text-base font-semibold text-gray-900">Total</span>
-                        <span className="text-base font-semibold text-gray-900">
-                          ${order.total ? order.total.toFixed(2) : '0.00'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
