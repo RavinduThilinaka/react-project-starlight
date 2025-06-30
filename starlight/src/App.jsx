@@ -16,6 +16,7 @@ import PaymentPage from "./components/Payment/PaymentPage";
 import Product from "./components/Product/Product";
 import DisplayPayment from "./components/Payment/DisplayPayment";
 import CheckoutPage from "./components/Product/CheckoutPage";
+import OrderDisplayPage from "./components/Order/OrderDisplayPage";
 
 export default function App() {
   return (
@@ -67,6 +68,7 @@ export default function App() {
           <Route path="/product" element={<Product />} />
           <Route path="/displayPayment" element={<DisplayPayment />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/orderDisplay" element={<OrderDisplayPage />} />
         </Routes>
       </main>
     </Router>
