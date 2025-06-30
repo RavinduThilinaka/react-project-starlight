@@ -66,7 +66,7 @@ const CheckoutPage = ({ cart = [], totalPrice = 0, onBackToShop }) => {
         city: formData.city,
         zipCode: formData.zipCode,
         items: cart.map(item => ({
-          productId: item.id || Math.random().toString(36).substr(2, 9), // Fallback ID if not provided
+          productId: item.id || Math.random().toString(36).substr(2, 9),
           title: item.title,
           price: item.price,
           quantity: item.quantity || 1
@@ -74,18 +74,40 @@ const CheckoutPage = ({ cart = [], totalPrice = 0, onBackToShop }) => {
         totalAmount: totalPrice
       };
 
-      // In a real app, you would send this to your backend
-      // For now, we'll just simulate a successful order
+      // Send to backend
+      const response = await fetch('http://localhost:3001/api/addOrder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit order');
+      }
+
+      const responseData = await response.json();
+
+      // Set order details from the response
       setOrderDetails({
         ...orderData,
-        orderId: `ORD-${Math.floor(Math.random() * 1000000)}`,
-        orderDate: new Date().toLocaleDateString()
+        orderId: responseData.orderId,
+        orderDate: responseData.orderDate
       });
+      
       setOrderSubmitted(true);
       
     } catch (error) {
       console.error('Order submission error:', error);
-      alert('There was an error submitting your order. Please try again.');
+      let errorMessage = 'There was an error submitting your order.';
+      if (error.message.includes('Failed to fetch')) {
+        errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -266,6 +288,21 @@ const CheckoutPage = ({ cart = [], totalPrice = 0, onBackToShop }) => {
                   </svg>
                   <h2 className="text-2xl font-bold mb-2">Order Confirmed!</h2>
                   <p className="text-gray-300 mb-6">Thank you for your order. Your order ID is: <span className="font-semibold">{orderDetails.orderId}</span></p>
+                  <div className="bg-gray-700 p-4 rounded-md mb-6 text-left">
+                    <h3 className="font-bold mb-2">Order Summary</h3>
+                    {orderDetails.items.map((item, index) => (
+                      <div key={index} className="flex justify-between py-1">
+                        <span>{item.title} (x{item.quantity})</span>
+                        <span>${(item.price * item.quantity).toFixed(2)}</span>
+                      </div>
+                    ))}
+                    <div className="border-t border-gray-600 mt-2 pt-2 font-bold">
+                      <div className="flex justify-between">
+                        <span>Total:</span>
+                        <span>${orderDetails.totalAmount.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
                   <button
                     onClick={onBackToShop}
                     className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 rounded-md transition"
@@ -301,7 +338,7 @@ const CheckoutPage = ({ cart = [], totalPrice = 0, onBackToShop }) => {
                         <p className="text-xs text-gray-400">{item.category}</p>
                       </div>
                     </div>
-                    <span className="font-medium">${item.price.toFixed(2)}</span>
+                    <span className="font-medium">${(item.price * (item.quantity || 1)).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
